@@ -36,3 +36,6 @@ def UpsertYields(df: pd.DataFrame, conn):
             (:date, :country, :instrument, :maturity, :yield)
     """, df.to_dict(orient="records"))
     conn.commit()
+
+if __name__ == "__main__":
+    InitDB()

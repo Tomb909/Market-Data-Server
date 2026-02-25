@@ -32,8 +32,6 @@ def FetchAllMaturities(startDate, endDate) -> pd.DataFrame:
     res.raise_for_status()
 
     df_raw = pd.read_csv(StringIO(res.text))
-    print(df_raw[df_raw.isnull().any(axis=1)].head(10))
-    print(df_raw.isnull().sum())
 
     # so each row is one date/maturity observation, rather than having series codes as columns make them values under a series code field
     df = df_raw.melt(id_vars=["DATE"], var_name="series_code", value_name="yield")
@@ -41,7 +39,7 @@ def FetchAllMaturities(startDate, endDate) -> pd.DataFrame:
     df["maturity"] = df["series_code"].map(CodeToMaturity)
 
     # normalise
-    df["date"] = pd.to_datetime(df["DATE"], dayfirst=True)
+    df["date"] = pd.to_datetime(df["DATE"], dayfirst=True).dt.strftime("%Y-%m-%d")
     df["country"] = "UK"
     df["instrument"] = "Gilt"
     df["yield"] = pd.to_numeric(df["yield"], errors="coerce") / 100
