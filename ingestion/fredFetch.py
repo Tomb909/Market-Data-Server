@@ -20,11 +20,14 @@ API_KEY = os.getenv("FRED_API_KEY")
 
 # return observations for a given series from fred API
 def FetchSeries(seriesID, startDate, endDate) -> list[dict]:
+    start = pd.to_datetime(startDate)
+    end   = pd.to_datetime(endDate) 
+
     url = "https://api.stlouisfed.org/fred/series/observations"
     params = {
         "series_id": seriesID,
-        "observation_start": startDate,
-        "observation_end": endDate,
+        "observation_start": start.strftime("%Y-%m-%d"),
+        "observation_end": end.strftime("%Y-%m-%d"),
         "api_key": API_KEY,
         "file_type": "json"
     }
@@ -59,10 +62,13 @@ def FetchAllMaturities(startDate, endDate) -> pd.DataFrame:
     # FRED marks missing values as "."
     df = df[df["value"] != "."]
 
-    df["yield"] = df["value"].astype(float) / 100 # FRED returns eg/ 4.25, we want 0.0425
-
+    df["yield"] = pd.to_numeric(df["value"], errors="coerce") / 100
     # convert label to numeric maturity in years
     df["maturity"] = df["label"].map(LabelToYears)
+
+    # remove missing values
+    df = df.dropna(subset=["yield", "maturity"])
+
 
     df["country"] = "US"
     df["instrument"] = "Treasury"
