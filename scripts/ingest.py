@@ -5,8 +5,8 @@ from ingestion.pipeline import RunPipeline
 
 def ParseArgs():
     parser = argparse.ArgumentParser(description="Ingest market data into local DB")
-    parser.add_argument("--end", type=str, default=datetime.today().strftime("%Y-%m-%d"), help="End date DD-MM-YYYY")
-    parser.add_argument("--start", type=str, default=(datetime.today() - timedelta(days=730)).strftime("%Y-%m-%d"), help="Start date DD-MM-YYYY")
+    parser.add_argument("--end", type=str, default=datetime.today().strftime("%Y-%m-%d"), help="End date YYYY-MM-DD")
+    parser.add_argument("--start", type=str, default=(datetime.today() - timedelta(days=730)).strftime("%Y-%m-%d"), help="Start date YYYY-MM-DD")
     return parser.parse_args()
 
 

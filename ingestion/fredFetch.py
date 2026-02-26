@@ -63,6 +63,7 @@ def FetchAllMaturities(startDate, endDate) -> pd.DataFrame:
     df = df[df["value"] != "."]
 
     df["yield"] = pd.to_numeric(df["value"], errors="coerce") / 100
+
     # convert label to numeric maturity in years
     df["maturity"] = df["label"].map(LabelToYears)
 
@@ -80,7 +81,3 @@ def LabelToYears(label: str) -> float:
         return int(label[:-1]) / 12
     elif label.endswith("Y"):
         return float(label[:-1])
-
-# if __name__ == "__main__":
-#     result = FetchAllMaturities("2023-01-01", "2025-01-01")
-#     print(result[:5])

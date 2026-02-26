@@ -33,14 +33,13 @@ def getLatest():
 
     return jsonify(res)
 
-# endpoint to get time series of interpolated yields for a given country and maturity, between a given start and end date
-# default start date is 1 year ago and default end date is today
+# endpoint to get time series of interpolated yields for a given country and maturity, between a given start and end date (default to 1 year ago to today)
 @app.route("/timeseries", methods=["GET"])
 def getTimeSeries():
     country = request.args.get("country", type=str)
     maturity = request.args.get("maturity", type=str)
-    start = request.args.get("start_date", default=(datetime.today() - timedelta(days=365)).strftime("%Y-%m-%d"), type=str)
-    end = request.args.get("end_date", default=datetime.today().strftime("%Y-%m-%d"), type=str)
+    start = request.args.get("start_date", default=(datetime.today() - timedelta(days=365)).strftime("%Y-%m-%d"), type=str) # default start date is today minus 1 year
+    end = request.args.get("end_date", default=datetime.today().strftime("%Y-%m-%d"), type=str) # default end date is today
 
     required = ["country", "maturity", "start_date", "end_date"]
     missing = [param for param in required if request.args.get(param) is None]
@@ -51,12 +50,11 @@ def getTimeSeries():
     conn = GetConnection()
     try:
         res = GetTimeSeriesInterpolatedYield(country, float(maturity), start, end, conn)
+        return jsonify(res)
     except ValueError as e:
-        conn.close()
         return jsonify({"error": str(e)}), 400
-    conn.close()
-
-    return jsonify(res)
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     app.run(debug=True)
