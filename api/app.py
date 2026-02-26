@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-
 from flask import Flask, request, jsonify
 from curve.interpolation import GetLatestInterpolatedYield, GetTimeSeriesInterpolatedYield
 from storage.database import GetConnection
@@ -22,16 +21,17 @@ def getLatest():
 
     if missing:
         return jsonify({"error": f"Missing required query parameters: {', '.join(missing)}"}), 400
-    
+    if float(maturity) < 0.0:
+        return jsonify({"error": "Maturity must be positive"}), 400    
+
     conn = GetConnection()
     try:
         res = GetLatestInterpolatedYield(country, float(maturity), conn)
+        return jsonify(res)
     except ValueError as e:
+        return jsonify({"No Content": str(e)}), 404
+    finally:
         conn.close()
-        return jsonify({"error": str(e)}), 400
-    conn.close()
-
-    return jsonify(res)
 
 # endpoint to get time series of interpolated yields for a given country and maturity, between a given start and end date (default to 1 year ago to today)
 @app.route("/timeseries", methods=["GET"])
@@ -46,13 +46,17 @@ def getTimeSeries():
 
     if missing:
         return jsonify({"error": f"Missing required query parameters: {', '.join(missing)}"}), 400
+    if end < start:
+        return jsonify({"error": "Start date must be before end date"}), 400
+    if float(maturity) < 0.0:
+        return jsonify({"error": "Maturity must be positive"}), 400
     
     conn = GetConnection()
     try:
         res = GetTimeSeriesInterpolatedYield(country, float(maturity), start, end, conn)
         return jsonify(res)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"No Content": str(e)}), 404
     finally:
         conn.close()
 
