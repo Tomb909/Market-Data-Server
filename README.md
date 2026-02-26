@@ -13,7 +13,7 @@
 ## Data Sources
 * For querying Bank of England Gilt Data I used: https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp
     - I used their [documentation](https://www.bankofengland.co.uk/boeapps/database/help.asp?Back=Y&Highlight=CSV#CSV) to customise the parameters in the query. I also had to programmatically set the header of the request to look like a browser to avoid an invalid client error.
-    - BOE only gives nominal par yield gilt data at only 3 maturities of 5 year, 10 year and 20 year which is much sparser than FRED, I found series codes for these maturities by searching [here](https://www.bankofengland.co.uk/boeapps/database)
+    - BOE gives nominal par yield gilt data at only 3 maturities of 5 year, 10 year and 20 year which is much sparser than FRED, I found series codes for these maturities by searching [here](https://www.bankofengland.co.uk/boeapps/database)
 * For US Treasury data I used: https://api.stlouisfed.org/fred/series/observations
     - I similarly used the FRED's [documentation](https://fred.stlouisfed.org/docs/api/fred/series_observations.html) to figure out how to query the above endpoint and I created an account to get an API key which is stored in a .env file
     - From this API I was able to get constant maturity Treasury yields with maturities: 1M, 3M, 6M, 1Y, 2Y, 5Y, 7Y, 10Y, 20Y, 30Y.
@@ -28,14 +28,14 @@
 
 ### Storage
 * I set up a SQLite database with a single yields table which is appropriate for a service needing to work locally such as this one
-* The yields table has a composite primary key of `(date, country, maturity)` which ensures on yield per date/country/maturity. This combined with using `INSERT OR REPLACE` makes the running of ingestion to be idempotent as rows will never be duplicated, simply overwriting existing rows if they already exist
+* The yields table has a composite primary key of `(date, country, maturity)` which ensures one yield per date/country/maturity. This combined with using `INSERT OR REPLACE` makes the running of ingestion to be idempotent as rows will never be duplicated, simply overwriting existing rows if they already exist
 * In `UpsertYields`, `executemany` and named place holders are used to bulk insert and bind values to the SQL. This is more efficient than row-by-row inserts and safe against SQL injection.
 * SQLite doesn't have a DATE type so I store the dates as string in a format of `YYYY-MM-DD`
 * Connections to the DB are created by the caller and passed into all functions. This avoids unnecessary reconnection and gives control over the scope of DB communication. The API uses try/finally blocks to guarantee closure of the connection.
 
 ### Curve Normalisation
 * I used Nelson-Siegel-Svensson for interpolation because after looking into it alongside polynomial functions I saw that both seem to be widely used for yield curves but central banks tend to use the Nelson-Siegel-Svenson model.
-* To implement NSS curve normalisation I use an aptly named `nelson_siegel_svensson` python library which fits a curve based on maturities and yields which can than be evaluated at any maturity which allows for interpolation and extrapolation across a 1 day to 50 year grid.
+* To implement NSS curve normalisation I use an aptly named `nelson_siegel_svensson` python library which fits a curve based on maturities and yields which can then be evaluated at any maturity which allows for interpolation and extrapolation across a 1 day to 50 year grid.
 
 ### API
 * Using flask and sqlite for a balance of working with a db (albeit local) for extensibility and suitability for a small app
