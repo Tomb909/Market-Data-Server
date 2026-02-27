@@ -1,4 +1,10 @@
 # Market-Data-Server
+This project pulls US Treasury data from Federal Reserve Economic Data (FRED) and UK gilt data from Bank of England, stores it in a local SQLite database, and exposes it via a Flask API and Streamlit frontend.
+
+It supports:
+* Historical time series queries for specific maturities
+* Yield curve construction at a point in time
+* Interpolation/extrapolation across maturities using the Nelson-Siegel-Svensson model
 
 ## Running
 1. In the main directory create a .env file with a FRED api key in the format `FRED_API_KEY="examplekey"`
